@@ -2,7 +2,6 @@
 #
 # rdiff-backup and duplicity wrapper script
 # SjG <samuel@1969web.com>
-# $Id: backups.rb,v 1.26 2010/01/08 01:37:02 samuel Exp $
 #
 #-------------------------------------------------------------------------
 # LICENSE (tl;dr -> BSD)
@@ -98,7 +97,11 @@ def is_local(target)
 end
 
 def test_restore_rdiff_backup(thisBackup, config)
-	cmd = "#{config['rdiff-command']} #{thisBackup['rdiff-restore-flags']} --force --restore-as-of now "
+    if (File.exist?("/tmp/backup-metadata.txt"))
+	    cmd = "rm /tmp/backup-metadata.txt"
+	    local_command(cmd, config)
+	end
+	cmd = "#{config['rdiff-command']} #{thisBackup['rdiff-restore-flags']} --restore-as-of now "
 	cmd += target_string_base(thisBackup['destination'])+"::" if ! is_local(thisBackup['destination'])
 	cmd += "#{thisBackup['destination']['directory']}/backup-metadata.txt /tmp/backup-metadata.txt"
 	msg "Restoring up backup-metadata.txt from #{thisBackup['source']['host']} to /tmp/backup-metadata.txt for checking" if config['verbose']
@@ -120,16 +123,30 @@ end
 def verify_signatures_rdiff_backup(thisBackup, config)
  	cmd = "#{config['rdiff-command']} #{thisBackup['rdiff-verify-flags']} --exclude-device-files --verify "
  	thisBackup['source']['exclude'].split(%r{[,\s]+}).each {|thisExcl| cmd += "--exclude #{thisExcl} "} if thisBackup['source']['exclude'] && !thisBackup['source']['exclude'].empty?
-	cmd += target_string_base(thisBackup['source'])+"::" if ! is_local(thisBackup['source'])
- 	cmd += "#{thisBackup['source']['directory']} "
 	cmd += target_string_base(thisBackup['destination'])+"::" if ! is_local(thisBackup['destination'])
 	cmd += "#{thisBackup['destination']['directory']}"
-	msg "Verifying #{thisBackup['source']['directory']} on #{thisBackup['source']['host']}" if config['verbose']
+	msg "Verifying #{thisBackup['destination']['directory']} on #{thisBackup['source']['host']}" if config['verbose']
 	local_command(cmd, config)
 end
 
+def verify_using_rsync(thisBackup, config)
+ 	cmd = "#{config['rsync-command']} #{thisBackup['rsync-flags']} -a -i --dry-run "
+ 	thisBackup['source']['exclude'].split(%r{[,\s]+}).each {|thisExcl| cmd += "--exclude #{thisExcl} "} if thisBackup['source']['exclude'] && !thisBackup['source']['exclude'].empty?
+	cmd += target_string_base(thisBackup['source'])+":" if ! is_local(thisBackup['source'])
+ 	cmd += "#{thisBackup['source']['directory']}/ "
+	cmd += target_string_base(thisBackup['destination'])+"::" if ! is_local(thisBackup['destination'])
+	cmd += "#{thisBackup['destination']['directory']}/"
+
+	msg "Verifying all files from #{thisBackup['source']['directory']} on #{thisBackup['source']['host']} using rsync" if config['verbose']
+	res = local_command(cmd, config)
+	if (res =~ /^\>/m)
+	    msg "ERROR! Rsync found files needing transfer: "+res
+    	$success = false
+	end
+end
+
 def cleanup_rdiff_backup(thisBackup, config)
- 	cmd = "#{config['rdiff-command']} #{thisBackup['rdiff-cleanup-flags']} --force --remove-older-than #{thisBackup['preserve']} "
+ 	cmd = "#{config['rdiff-command']} #{thisBackup['rdiff-cleanup-flags']} --remove-older-than #{thisBackup['preserve']} --force "
 	cmd += target_string_base(thisBackup['destination'])+"::" if ! is_local(thisBackup['destination'])
 	cmd += "#{thisBackup['destination']['directory']}"
 	msg "Purging increments older that #{thisBackup['preserve']}" if config['verbose']
@@ -156,7 +173,7 @@ end
 def backup_duplicity(thisBackup, config)
  	cmd = "#{config['duplicity-command']} #{thisBackup['duplicity-backup-flags']} --exclude-device-files "
  	thisBackup['source']['exclude'].split(%r{[,\s]+}).each {|thisExcl| cmd += "--exclude #{thisExcl} "} if thisBackup['source']['exclude'] && !thisBackup['source']['exclude'].empty?
-   cmd += "#{thisBackup['source']['directory']} "
+    cmd += "#{thisBackup['source']['directory']} "
 	cmd += duplicity_dest_spec(thisBackup)
 	ENV['PASSPHRASE'] = thisBackup['destination']['pgp_passphrase']
 	cmd += target_string_base(thisBackup['destination']) if ! is_local(thisBackup['destination'])
@@ -167,7 +184,7 @@ def backup_duplicity(thisBackup, config)
 end
 
 def cleanup_duplicity(thisBackup, config)
- 	cmd = "#{config['duplicity-command']} #{thisBackup['duplicity-cleanup-flags']} --force --remove-older-than  #{thisBackup['preserve']} "
+ 	cmd = "#{config['duplicity-command']} #{thisBackup['duplicity-cleanup-flags']} --remove-older-than  #{thisBackup['preserve']} --force "
 	cmd += duplicity_dest_spec(thisBackup)
 	ENV['PASSPHRASE'] = thisBackup['destination']['pgp_passphrase']
 	cmd += target_string_base(thisBackup['destination']) if ! is_local(thisBackup['destination'])
@@ -178,6 +195,10 @@ def cleanup_duplicity(thisBackup, config)
 end
 
 def test_restore_duplicity(thisBackup, config)
+   if (File.exist?("/tmp/backup-metadata.txt"))
+	    cmd = "rm /tmp/backup-metadata.txt"
+	    local_command(cmd, config)
+	end
 	cmd = "#{config['duplicity-command']} #{thisBackup['duplicity-restore-flags']} --file-to-restore backup-metadata.txt "
 	cmd += duplicity_dest_spec(thisBackup)
 	ENV['PASSPHRASE'] = thisBackup['destination']['pgp_passphrase']
@@ -393,7 +414,7 @@ begin
    
    	['preserve','rdiff-backup-flags','rdiff-restore-flags','rdiff-verify-flags',
    	 'rdiff-cleanup-flags','duplicity-backup-flags','duplicity-restore-flags',
-   	 'duplicity-verify-flags','duplicity-cleanup-flags'].each do
+   	 'duplicity-verify-flags','duplicity-cleanup-flags','rsync-flags'].each do
    	   |param|
    		thisBackup[param] = thisBackup[param] || config[param]
    	end
@@ -458,6 +479,15 @@ begin
       				   test_restore_rdiff_backup(thisBackup, config)
       			   when "duplicity"
       					test_restore_duplicity(thisBackup, config)
+      		   end
+      		end
+
+      		if thisBackup['verify-with-rsync']
+      		   case thisBackup['backup-engine']
+      			   when "rdiff-backup"
+      				   verify_using_rsync(thisBackup, config)
+      			   when "duplicity"
+      					msg "verify-with-rsync is unsupported for duplicity."
       		   end
       		end
 

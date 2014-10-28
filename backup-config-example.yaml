@@ -22,6 +22,12 @@ duplicity-verify-flags:
 duplicity-cleanup-flags:
 
 #--------------------------------------------------------------------
+# Configure rsync for verify
+#--------------------------------------------------------------------
+rsync-command: /usr/bin/rsync
+rsync-flags:
+
+#--------------------------------------------------------------------
 # Runtime Settings
 #--------------------------------------------------------------------
 # How long to preserve revisions (see rdiff-backup or duplicity man page)
@@ -101,10 +107,9 @@ locations:
 #--------------------------------------------------------------------
 option-sets:
    set1:
-      # note that verify-signitures is not implemented in the stable
-      # version of rdiff-backup, but *is* in the current development version
       verify-signatures: false
       roundtrip-test: true
+      verify-with-rsync: true
       disabled: false
    set2:
       duplicity-backup-flags: --no-encryption

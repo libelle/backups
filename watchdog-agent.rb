@@ -2,7 +2,6 @@
 #
 # backups.rb remote watchdog agent
 # SjG <samuel@1969web.com>
-# $Id: watchdog-agent.rb,v 1.1 2008/01/04 19:32:46 samuel Exp $
 #
 #-------------------------------------------------------------------------
 # LICENSE (tl;dr -> BSD)

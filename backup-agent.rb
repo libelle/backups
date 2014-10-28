@@ -2,7 +2,6 @@
 #
 # backups.rb remote agent
 # SjG <samuel@1969web.com>
-# $Id: backup-agent.rb,v 1.5 2009/05/13 18:31:28 samuel Exp $
 #
 #-------------------------------------------------------------------------
 # LICENSE (tl;dr -> BSD)
@@ -41,8 +40,8 @@
 
 require 'net/smtp'
 
-version = 0.3
-version_date = '13 May 2009'
+version = 0.4
+version_date = '28 Oct 2014'
 verbose = false
 
 #-------------------------------------------------------------------------
@@ -52,6 +51,7 @@ legal_commands = [
 	'status',
 	'date',
 	'rdiff-backup',
+	'rsync',
 	'duplicity',
 	'mysqldump',
 	'pg_dump',
