@@ -88,9 +88,9 @@ locations:
 # name, backup-engine, source (and any subset of source options),
 # destination (and any subset of destination options), preserve,
 # pre-src, pre-dest, post-src, post-dest, verify-signatures,
-# roundtrip-test, disabled, rdiff-backup-flags, rdiff-restore-flags,
-# rdiff-verify-flags, rdiff-cleanup-flags, duplicity-backup-flags,
-# duplicity-restore-flags, duplicity-verify-flags,
+# roundtrip-test, verify-with-rsync, disabled, rdiff-backup-flags,
+# rdiff-restore-flags, rdiff-verify-flags, rdiff-cleanup-flags,
+# duplicity-backup-flags, duplicity-restore-flags, duplicity-verify-flags,
 # duplicity-cleanup-flags, week-days, days-of-month
 #
 # week-days is a string of day-of-week characters:

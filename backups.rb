@@ -393,7 +393,7 @@ begin
                      thisBackup[key][skey] = thisBackup[key][skey] || sval
                   end
                else
-                  thisBackup[key] = thisBackup[key] || val
+                  thisBackup[key] = val if thisBackup[key].nil?
                end
       		end
    		rescue

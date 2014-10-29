@@ -145,7 +145,21 @@ In your backup-tasks.rb, you can have commands executed on either the
 source or destination before or after the backup. So, in you source clause,
 put in a line like:
 
-pre-src: "mysqldump -u user -p password databasename > /backupdirectory/backup.sql"
+pre-src: "'mysqldump -u user -p password databasename > /backupdirectory/backup.sql'"
+
+---------------------------------------------------------------------------
+Crontab Backup Strategies
+---------------------------------------------------------------------------
+How many times have you restored a server, only to find that your complex set
+of cron-based tasks are not running. And what were those parameters you were
+passing to them? drat!
+
+The backup-agent.rb has a crontab backup command. Put it in your pre-src:
+
+pre-src: "'crontabs root bob the_dude'"
+
+This will dump root, bob, and the_dude's crontabs to /tmp/crontabs as
+individual files. Then you can simply back 'em up as normal.
 
 ---------------------------------------------------------------------------
 Round-Trip Testing
@@ -171,6 +185,18 @@ it issues (say, for example, rdiff-backup crashes half-way through a
 session), but there are cases where it can fail. So take that into
 consideration when staking your corporate future on this script, and
 keep in mind that I'm disclaiming all liability.
+
+---------------------------------------------------------------------------
+Rsync verification
+---------------------------------------------------------------------------
+If you don't trust rdiff-backup to get all your files, you can use the new
+verify-with-rsync option, which will compare the source and destination
+using rsync after backing up. If rsync thinks there are files that need to
+be transferred (e.g., they vary in size or filename), backups will return
+an error.
+
+This can be problematic on rapidly-changing directories, of course, because
+it's not atomic to the rdiff-backup operation. Use with discretion.
 
 ---------------------------------------------------------------------------
 The Watchdog
@@ -212,4 +238,4 @@ it's evidently a Python bug triggered by an empty directory on the
 destination. You can work around it by putting an empty file in your target
 directory.
 ---------------------------------------------------------------------------
-This file last updated: 4 Jan 2008
+This file last updated: 28 Oct 2014

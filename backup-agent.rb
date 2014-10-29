@@ -57,7 +57,9 @@ legal_commands = [
 	'pg_dump',
 	'pg_dumpall',
 	'vm_suspend',
-	'vm_resume'
+	'vm_resume',
+	'crontabs',
+	'info'
 	]
 
 # illegal commands - these strings will get removed even
@@ -158,6 +160,31 @@ if legal_commands.find{|legal| command_list[0]==legal} != nil
 	       fin.close unless fin.nil?
 	     end
 	   end
+	elsif clean[0] == 'info'
+	   begin
+	       cmd="whoami"
+	       exec cmd
+	   rescue
+	       puts "ERROR! "+$!
+	   end
+    elsif clean[0] == 'crontabs'
+        if ! FileTest.exists?('/tmp/crontabs')
+           Dir.mkdir('/tmp/crontabs')
+        end
+       clean.each do
+            |user|
+            begin
+                suser = user.gsub(/[^\d\-a-zA-Z]/, "")
+                cmd = "crontab -lu #{suser} > /tmp/crontabs/#{suser}"
+                 if (suser !~ /crontabs/)
+                    res =`#{cmd}`
+                    STDERR.puts "FAIL" if ($? != 0)
+                 end
+            rescue
+                STDERR.puts "ERROR! "+$!
+            end
+         end
+
    else
 		runstring = clean.join(" ")
 		puts runstring if verbose
