@@ -37,8 +37,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #-------------------------------------------------------------------------
 # 
-version = "0.2.6"
-version_date = "8 Jan 2010"
+version = "0.2.7"
+version_date = "28 Oct 2014"
 #
 
 require 'yaml'

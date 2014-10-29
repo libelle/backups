@@ -1,3 +1,7 @@
+NOTE: IF YOU ARE RUNNING VERSION 0.2.6 FROM 8 Jan 2010, PLEASE UPDATE!
+There is a bug that can lead to files not being backed up! Obviously,
+not desirable behavior in a backup program.
+
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 README.txt  -  backups.rb
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
