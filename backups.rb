@@ -140,8 +140,7 @@ def verify_using_rsync(thisBackup, config)
 	msg "Verifying all files from #{thisBackup['source']['directory']} on #{thisBackup['source']['host']} using rsync" if config['verbose']
 	res = local_command(cmd, config)
 	if (res =~ /^\>/m)
-	    msg "ERROR! Rsync found files needing transfer: "+res
-    	$success = false
+	    msg "WARNING! Rsync found files needing transfer: "+res
 	end
 end
 
